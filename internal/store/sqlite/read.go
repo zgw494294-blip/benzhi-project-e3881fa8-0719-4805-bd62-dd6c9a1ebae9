@@ -54,7 +54,7 @@ func (r *Repository) LoadRevision(ctx context.Context, revisionID string) (capti
 	cached, ok := r.revisionCache[revisionID]
 	r.revisionMu.RUnlock()
 	if ok {
-		return cached, nil
+		return cloneRevision(cached), nil
 	}
 
 	var body []byte
@@ -66,8 +66,9 @@ func (r *Repository) LoadRevision(ctx context.Context, revisionID string) (capti
 	if err := decode(body, &value); err != nil {
 		return caption.CaptionRevision{}, err
 	}
+	value = cloneRevision(value)
 	r.revisionMu.Lock()
-	r.revisionCache[revisionID] = value
+	r.revisionCache[revisionID] = cloneRevision(value)
 	r.revisionMu.Unlock()
 	return value, nil
 }
@@ -175,4 +176,34 @@ func (r *Repository) LoadIdempotency(ctx context.Context, key string) (workflow.
 		return workflow.IdempotencyRecord{}, fmt.Errorf("无效幂等记录")
 	}
 	return value, nil
+}
+
+// cloneRevision returns a deep copy of revision so callers cannot mutate the
+// cached or freshly decoded value through shared slice headers. Persisted
+// revisions are immutable; reads must never expose internal state to caller
+// mutation.
+func cloneRevision(revision caption.CaptionRevision) caption.CaptionRevision {
+	revision.Cues = cloneCues(revision.Cues)
+	return revision
+}
+
+func cloneCues(cues []caption.CaptionCue) []caption.CaptionCue {
+	if cues == nil {
+		return nil
+	}
+	cloned := make([]caption.CaptionCue, len(cues))
+	for i := range cues {
+		cloned[i] = cues[i]
+		cloned[i].Lines = cloneStrings(cues[i].Lines)
+	}
+	return cloned
+}
+
+func cloneStrings(values []string) []string {
+	if values == nil {
+		return nil
+	}
+	cloned := make([]string, len(values))
+	copy(cloned, values)
+	return cloned
 }
