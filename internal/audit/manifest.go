@@ -96,11 +96,11 @@ func (s *Signer) Result(manifest caption.ReleaseManifest, expectedDigest string)
 	if manifest.IssuedBy != s.issuer {
 		return VerificationResult{Code: "unknown_issuer", Message: ErrUnknownIssuer.Error()}
 	}
-	if expectedDigest != "" && manifest.FrozenDigest != expectedDigest {
-		return VerificationResult{Code: "content_mismatch", Message: "清单摘要与已冻结内容不一致"}
-	}
 	if err := s.Verify(manifest); err != nil {
 		return VerificationResult{Code: "tampered", Message: err.Error()}
+	}
+	if expectedDigest != "" && manifest.FrozenDigest != expectedDigest {
+		return VerificationResult{Code: "content_mismatch", Message: "清单摘要与已冻结内容不一致"}
 	}
 	return VerificationResult{Valid: true, Code: "valid", Message: "清单签名与冻结内容均有效"}
 }
