@@ -70,7 +70,7 @@ func marshalResponse(value any) (json.RawMessage, error) {
 	return encoded, nil
 }
 
-func (s *Service) replay(ctx context.Context, key, command string, target any) (bool, error) {
+func (s *Service) replay(ctx context.Context, key, command, packageID string, target any) (bool, error) {
 	if strings.TrimSpace(key) == "" {
 		return false, caption.Invalid("idempotencyKey", "不能为空")
 	}
@@ -82,6 +82,9 @@ func (s *Service) replay(ctx context.Context, key, command string, target any) (
 		return false, err
 	}
 	if record.Command != command {
+		return false, ErrIdempotencyKey
+	}
+	if packageID != "" && record.PackageID != packageID {
 		return false, ErrIdempotencyKey
 	}
 	if err := json.Unmarshal(record.Response, target); err != nil {

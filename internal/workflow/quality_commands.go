@@ -15,7 +15,7 @@ type CheckResult struct {
 func (s *Service) RunChecks(ctx context.Context, input RunCheckInput) (CheckResult, error) {
 	const command = "run_checks"
 	var replayed CheckResult
-	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
+	if ok, err := s.replay(ctx, input.IdempotencyKey, command, input.PackageID, &replayed); ok || err != nil {
 		return replayed, err
 	}
 	if err := validateCommand(input.PackageID, input.ActorID, input.IdempotencyKey); err != nil {
@@ -59,7 +59,7 @@ func (s *Service) RunChecks(ctx context.Context, input RunCheckInput) (CheckResu
 func (s *Service) RequestException(ctx context.Context, input ExceptionInput) (caption.QualityFinding, error) {
 	const command = "request_exception"
 	var replayed caption.QualityFinding
-	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
+	if ok, err := s.replay(ctx, input.IdempotencyKey, command, input.PackageID, &replayed); ok || err != nil {
 		return replayed, err
 	}
 	if err := validateCommand(input.PackageID, input.ActorID, input.IdempotencyKey); err != nil {
@@ -121,7 +121,7 @@ func (s *Service) RequestException(ctx context.Context, input ExceptionInput) (c
 func (s *Service) SubmitReplacement(ctx context.Context, input ReplacementInput) (caption.CaptionRevision, error) {
 	const command = "submit_replacement"
 	var replayed caption.CaptionRevision
-	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
+	if ok, err := s.replay(ctx, input.IdempotencyKey, command, input.PackageID, &replayed); ok || err != nil {
 		return replayed, err
 	}
 	if err := validateCommand(input.PackageID, input.SubmittedBy, input.IdempotencyKey); err != nil {

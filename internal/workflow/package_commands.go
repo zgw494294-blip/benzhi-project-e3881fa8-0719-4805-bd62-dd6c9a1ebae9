@@ -11,7 +11,7 @@ import (
 func (s *Service) CreatePackage(ctx context.Context, input CreatePackageInput) (caption.CaptionPackage, error) {
 	const command = "create_package"
 	var replayed caption.CaptionPackage
-	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
+	if ok, err := s.replay(ctx, input.IdempotencyKey, command, "", &replayed); ok || err != nil {
 		return replayed, err
 	}
 	if len(strings.TrimSpace(input.IdempotencyKey)) < 8 {
@@ -42,7 +42,7 @@ func (s *Service) CreatePackage(ctx context.Context, input CreatePackageInput) (
 func (s *Service) ImportRevision(ctx context.Context, input ImportRevisionInput) (caption.CaptionRevision, error) {
 	const command = "import_revision"
 	var replayed caption.CaptionRevision
-	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
+	if ok, err := s.replay(ctx, input.IdempotencyKey, command, input.PackageID, &replayed); ok || err != nil {
 		return replayed, err
 	}
 	if err := validateCommand(input.PackageID, input.SubmittedBy, input.IdempotencyKey); err != nil {
