@@ -33,7 +33,7 @@ func (s *Service) CreatePackage(ctx context.Context, input CreatePackageInput) (
 	if err != nil {
 		return caption.CaptionPackage{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{CreatePackage: true, Package: pkg, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{CreatePackage: true, Package: pkg, Event: event, Idempotency: idem}); err != nil {
 		return caption.CaptionPackage{}, err
 	}
 	return pkg, nil
@@ -73,7 +73,7 @@ func (s *Service) ImportRevision(ctx context.Context, input ImportRevisionInput)
 	if err != nil {
 		return caption.CaptionRevision{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Revision: &revision, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Revision: &revision, Event: event, Idempotency: idem}); err != nil {
 		return caption.CaptionRevision{}, err
 	}
 	return revision, nil

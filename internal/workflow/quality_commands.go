@@ -50,7 +50,7 @@ func (s *Service) RunChecks(ctx context.Context, input RunCheckInput) (CheckResu
 	if err != nil {
 		return CheckResult{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Findings: findings, ReplaceFindings: true, Summary: &summary, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Findings: findings, ReplaceFindings: true, Summary: &summary, Event: event, Idempotency: idem}); err != nil {
 		return CheckResult{}, err
 	}
 	return result, nil
@@ -112,7 +112,7 @@ func (s *Service) RequestException(ctx context.Context, input ExceptionInput) (c
 	if err != nil {
 		return caption.QualityFinding{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Findings: findings, ReplaceFindings: true, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Findings: findings, ReplaceFindings: true, Event: event, Idempotency: idem}); err != nil {
 		return caption.QualityFinding{}, err
 	}
 	return result, nil
@@ -158,7 +158,7 @@ func (s *Service) SubmitReplacement(ctx context.Context, input ReplacementInput)
 	if err != nil {
 		return caption.CaptionRevision{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Revision: &revision, Findings: findings, ReplaceFindings: true, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Revision: &revision, Findings: findings, ReplaceFindings: true, Event: event, Idempotency: idem}); err != nil {
 		return caption.CaptionRevision{}, err
 	}
 	return revision, nil

@@ -122,3 +122,15 @@ func cloneEvents(events []audit.Event) []audit.Event {
 	}
 	return result
 }
+
+// commit persists a commit and invalidates any cached audit history for the
+// affected package so that subsequent reads reflect the freshly written state.
+func (s *Service) commit(ctx context.Context, commit Commit) error {
+	if err := s.repo.Commit(ctx, commit); err != nil {
+		return err
+	}
+	s.historyMu.Lock()
+	delete(s.historyCache, commit.Package.PackageID)
+	s.historyMu.Unlock()
+	return nil
+}

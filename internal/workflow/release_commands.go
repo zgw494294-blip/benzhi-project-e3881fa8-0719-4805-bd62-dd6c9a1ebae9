@@ -49,7 +49,7 @@ func (s *Service) Review(ctx context.Context, input ReviewInput) (caption.Review
 	if err != nil {
 		return caption.ReviewDecision{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Findings: findings, ReplaceFindings: true, Review: &decision, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Findings: findings, ReplaceFindings: true, Review: &decision, Event: event, Idempotency: idem}); err != nil {
 		return caption.ReviewDecision{}, err
 	}
 	return decision, nil
@@ -108,7 +108,7 @@ func (s *Service) Freeze(ctx context.Context, input FreezeInput) (caption.Captio
 	if err != nil {
 		return caption.CaptionPackage{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Event: event, Idempotency: idem}); err != nil {
 		return caption.CaptionPackage{}, err
 	}
 	return pkg, nil
@@ -154,7 +154,7 @@ func (s *Service) IssueManifest(ctx context.Context, input IssueInput) (caption.
 	if err != nil {
 		return caption.ReleaseManifest{}, err
 	}
-	if err := s.repo.Commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Manifest: &manifest, Event: event, Idempotency: idem}); err != nil {
+	if err := s.commit(ctx, Commit{ExpectedVersion: input.ExpectedVersion, Package: pkg, Manifest: &manifest, Event: event, Idempotency: idem}); err != nil {
 		return caption.ReleaseManifest{}, err
 	}
 	return manifest, nil
