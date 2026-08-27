@@ -5,12 +5,19 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
+
+	"caption-release-gate/internal/caption"
 
 	_ "modernc.org/sqlite"
 )
 
-type Repository struct{ db *sql.DB }
+type Repository struct {
+	db            *sql.DB
+	revisionMu    sync.RWMutex
+	revisionCache map[string]caption.CaptionRevision
+}
 
 func Open(ctx context.Context, path string) (*Repository, error) {
 	path = strings.TrimSpace(path)
@@ -44,7 +51,7 @@ func Open(ctx context.Context, path string) (*Repository, error) {
 		db.Close()
 		return nil, err
 	}
-	return &Repository{db: db}, nil
+	return &Repository{db: db, revisionCache: make(map[string]caption.CaptionRevision)}, nil
 }
 
 func (r *Repository) Close() error { return r.db.Close() }

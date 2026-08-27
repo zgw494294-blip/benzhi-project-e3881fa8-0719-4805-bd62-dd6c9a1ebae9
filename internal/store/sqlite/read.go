@@ -50,13 +50,26 @@ func (r *Repository) ListPackages(ctx context.Context) ([]caption.CaptionPackage
 }
 
 func (r *Repository) LoadRevision(ctx context.Context, revisionID string) (caption.CaptionRevision, error) {
+	r.revisionMu.RLock()
+	cached, ok := r.revisionCache[revisionID]
+	r.revisionMu.RUnlock()
+	if ok {
+		return cached, nil
+	}
+
 	var body []byte
 	err := r.db.QueryRowContext(ctx, `SELECT body FROM revisions WHERE revision_id = ?`, revisionID).Scan(&body)
 	if err != nil {
 		return caption.CaptionRevision{}, notFound(err)
 	}
 	var value caption.CaptionRevision
-	return value, decode(body, &value)
+	if err := decode(body, &value); err != nil {
+		return caption.CaptionRevision{}, err
+	}
+	r.revisionMu.Lock()
+	r.revisionCache[revisionID] = value
+	r.revisionMu.Unlock()
+	return value, nil
 }
 
 func (r *Repository) ListRevisions(ctx context.Context, packageID string) ([]caption.CaptionRevision, error) {
