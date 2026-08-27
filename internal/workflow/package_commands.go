@@ -80,6 +80,29 @@ func (s *Service) ImportRevision(ctx context.Context, input ImportRevisionInput)
 }
 
 func (s *Service) GetPackage(ctx context.Context, packageID string) (PackageView, error) {
+	s.viewMu.Lock()
+	if call, ok := s.viewCalls[packageID]; ok {
+		s.viewMu.Unlock()
+		select {
+		case <-call.done:
+			return call.view, call.err
+		case <-ctx.Done():
+			return PackageView{}, ctx.Err()
+		}
+	}
+	call := &packageViewCall{done: make(chan struct{})}
+	s.viewCalls[packageID] = call
+	s.viewMu.Unlock()
+
+	call.view, call.err = s.loadPackageView(ctx, packageID)
+	close(call.done)
+	s.viewMu.Lock()
+	delete(s.viewCalls, packageID)
+	s.viewMu.Unlock()
+	return call.view, call.err
+}
+
+func (s *Service) loadPackageView(ctx context.Context, packageID string) (PackageView, error) {
 	pkg, err := s.repo.LoadPackage(ctx, packageID)
 	if err != nil {
 		return PackageView{}, err

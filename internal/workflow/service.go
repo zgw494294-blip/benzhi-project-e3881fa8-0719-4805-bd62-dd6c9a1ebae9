@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"caption-release-gate/internal/audit"
@@ -15,13 +16,26 @@ import (
 )
 
 type Service struct {
-	repo  Repository
-	audit *audit.Service
-	clock Clock
+	repo      Repository
+	audit     *audit.Service
+	clock     Clock
+	viewMu    sync.Mutex
+	viewCalls map[string]*packageViewCall
+}
+
+type packageViewCall struct {
+	done chan struct{}
+	view PackageView
+	err  error
 }
 
 func NewService(repo Repository, auditService *audit.Service) *Service {
-	return &Service{repo: repo, audit: auditService, clock: func() time.Time { return time.Now().UTC() }}
+	return &Service{
+		repo:      repo,
+		audit:     auditService,
+		clock:     func() time.Time { return time.Now().UTC() },
+		viewCalls: make(map[string]*packageViewCall),
+	}
 }
 
 func (s *Service) SetClock(clock Clock) {
