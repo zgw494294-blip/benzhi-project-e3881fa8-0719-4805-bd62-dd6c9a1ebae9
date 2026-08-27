@@ -34,7 +34,7 @@ func (s *Service) Review(ctx context.Context, input ReviewInput) (caption.Review
 	if err := caption.ValidateReview(pkg, revision, findings, input.ReviewerID, input.Outcome, input.AcceptedExceptionIDs); err != nil {
 		return caption.ReviewDecision{}, err
 	}
-	findings = caption.ApplyAcceptedExceptions(findings, input.AcceptedExceptionIDs)
+	findings = s.stageReviewFindings(findings, input.AcceptedExceptionIDs)
 	decision := caption.ReviewDecision{DecisionID: newID("decision"), PackageID: pkg.PackageID, RevisionID: revision.RevisionID, ReviewerID: strings.TrimSpace(input.ReviewerID), Outcome: input.Outcome, AcceptedExceptionIDs: append([]string(nil), input.AcceptedExceptionIDs...), Comment: strings.TrimSpace(input.Comment), DecidedAt: s.clock()}
 	status := caption.StatusRemediation
 	if input.Outcome == caption.ReviewApproved {

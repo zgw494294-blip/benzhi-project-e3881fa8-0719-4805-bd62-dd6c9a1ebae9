@@ -15,9 +15,10 @@ import (
 )
 
 type Service struct {
-	repo  Repository
-	audit *audit.Service
-	clock Clock
+	repo           Repository
+	audit          *audit.Service
+	clock          Clock
+	reviewFindings []caption.QualityFinding
 }
 
 func NewService(repo Repository, auditService *audit.Service) *Service {
@@ -96,6 +97,12 @@ func (s *Service) event(ctx context.Context, packageID, eventType, actor string,
 		return audit.Event{}, err
 	}
 	return s.audit.BuildEvent(packageID, eventType, actor, s.clock(), data, history)
+}
+
+func (s *Service) stageReviewFindings(findings []caption.QualityFinding, acceptedIDs []string) []caption.QualityFinding {
+	s.reviewFindings = append(s.reviewFindings[:0], findings...)
+	s.reviewFindings = caption.ApplyAcceptedExceptions(s.reviewFindings, acceptedIDs)
+	return s.reviewFindings
 }
 
 func record(key, command, packageID string, response any) (IdempotencyRecord, error) {
