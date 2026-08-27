@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"caption-release-gate/internal/audit"
@@ -15,13 +16,20 @@ import (
 )
 
 type Service struct {
-	repo  Repository
-	audit *audit.Service
-	clock Clock
+	repo         Repository
+	audit        *audit.Service
+	clock        Clock
+	historyMu    sync.RWMutex
+	historyCache map[string][]audit.Event
 }
 
 func NewService(repo Repository, auditService *audit.Service) *Service {
-	return &Service{repo: repo, audit: auditService, clock: func() time.Time { return time.Now().UTC() }}
+	return &Service{
+		repo:         repo,
+		audit:        auditService,
+		clock:        func() time.Time { return time.Now().UTC() },
+		historyCache: make(map[string][]audit.Event),
+	}
 }
 
 func (s *Service) SetClock(clock Clock) {
@@ -104,4 +112,13 @@ func record(key, command, packageID string, response any) (IdempotencyRecord, er
 		return IdempotencyRecord{}, err
 	}
 	return IdempotencyRecord{Key: key, Command: command, PackageID: packageID, Response: encoded}, nil
+}
+
+func cloneEvents(events []audit.Event) []audit.Event {
+	result := make([]audit.Event, len(events))
+	for index, event := range events {
+		result[index] = event
+		result[index].Data = append([]byte(nil), event.Data...)
+	}
+	return result
 }

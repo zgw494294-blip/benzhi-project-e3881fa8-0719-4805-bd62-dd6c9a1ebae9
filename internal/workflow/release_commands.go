@@ -172,6 +172,12 @@ func (s *Service) VerifyManifest(ctx context.Context, manifest caption.ReleaseMa
 }
 
 func (s *Service) History(ctx context.Context, packageID string) (any, error) {
+	s.historyMu.RLock()
+	cached, ok := s.historyCache[packageID]
+	s.historyMu.RUnlock()
+	if ok {
+		return cloneEvents(cached), nil
+	}
 	events, err := s.repo.LoadEvents(ctx, packageID)
 	if err != nil {
 		return nil, err
@@ -179,5 +185,8 @@ func (s *Service) History(ctx context.Context, packageID string) (any, error) {
 	if err := s.audit.VerifyHistory(events); err != nil {
 		return nil, err
 	}
-	return events, nil
+	s.historyMu.Lock()
+	s.historyCache[packageID] = cloneEvents(events)
+	s.historyMu.Unlock()
+	return cloneEvents(events), nil
 }
