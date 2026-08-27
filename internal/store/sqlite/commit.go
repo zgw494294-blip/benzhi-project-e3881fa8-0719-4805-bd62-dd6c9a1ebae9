@@ -135,20 +135,12 @@ func insertRevision(ctx context.Context, tx *sql.Tx, revision caption.CaptionRev
 }
 
 func replaceFindings(ctx context.Context, tx *sql.Tx, commit workflow.Commit) error {
-	revisions := make(map[string]struct{})
-	for _, finding := range commit.Findings {
-		revisions[finding.RevisionID] = struct{}{}
-	}
-	if commit.Summary != nil {
-		revisions[commit.Summary.RevisionID] = struct{}{}
-	}
-	if len(revisions) == 0 && commit.Package.CurrentRevisionID != "" {
-		revisions[commit.Package.CurrentRevisionID] = struct{}{}
-	}
-	for revisionID := range revisions {
-		if _, err := tx.ExecContext(ctx, `DELETE FROM findings WHERE revision_id = ?`, revisionID); err != nil {
-			return err
-		}
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM findings
+		WHERE revision_id IN (
+			SELECT revision_id FROM revisions WHERE package_id = ?
+		)`, commit.Package.PackageID); err != nil {
+		return err
 	}
 	for _, finding := range commit.Findings {
 		body, err := encode(finding)
