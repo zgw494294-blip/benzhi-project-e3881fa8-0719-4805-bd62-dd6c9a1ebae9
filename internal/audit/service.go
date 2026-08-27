@@ -2,19 +2,28 @@ package audit
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"caption-release-gate/internal/caption"
 )
 
-type Service struct{ signer *Signer }
+type Service struct {
+	signer *Signer
+
+	verificationMu    sync.RWMutex
+	verificationCache map[string]VerificationResult
+}
 
 func NewService(issuer string, secret []byte) (*Service, error) {
 	signer, err := NewSigner(issuer, secret)
 	if err != nil {
 		return nil, err
 	}
-	return &Service{signer: signer}, nil
+	return &Service{
+		signer:            signer,
+		verificationCache: make(map[string]VerificationResult),
+	}, nil
 }
 
 func (s *Service) BuildEvent(packageID, eventType, actorID string, at time.Time, data any, history []Event) (Event, error) {
@@ -47,7 +56,18 @@ func (s *Service) Issue(packageID, revisionID, frozenDigest, ruleDigest string, 
 }
 
 func (s *Service) Verify(manifest caption.ReleaseManifest, expectedDigest string) VerificationResult {
-	return s.signer.Result(manifest, expectedDigest)
+	s.verificationMu.RLock()
+	result, ok := s.verificationCache[manifest.PackageID]
+	s.verificationMu.RUnlock()
+	if ok {
+		return result
+	}
+
+	result = s.signer.Result(manifest, expectedDigest)
+	s.verificationMu.Lock()
+	s.verificationCache[manifest.PackageID] = result
+	s.verificationMu.Unlock()
+	return result
 }
 
 func (s *Service) VerifyHistory(events []Event) error { return VerifyChain(events) }
