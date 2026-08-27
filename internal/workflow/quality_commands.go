@@ -13,6 +13,7 @@ type CheckResult struct {
 }
 
 func (s *Service) RunChecks(ctx context.Context, input RunCheckInput) (CheckResult, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "run_checks"
 	var replayed CheckResult
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
@@ -57,6 +58,7 @@ func (s *Service) RunChecks(ctx context.Context, input RunCheckInput) (CheckResu
 }
 
 func (s *Service) RequestException(ctx context.Context, input ExceptionInput) (caption.QualityFinding, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "request_exception"
 	var replayed caption.QualityFinding
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
@@ -119,6 +121,7 @@ func (s *Service) RequestException(ctx context.Context, input ExceptionInput) (c
 }
 
 func (s *Service) SubmitReplacement(ctx context.Context, input ReplacementInput) (caption.CaptionRevision, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "submit_replacement"
 	var replayed caption.CaptionRevision
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {

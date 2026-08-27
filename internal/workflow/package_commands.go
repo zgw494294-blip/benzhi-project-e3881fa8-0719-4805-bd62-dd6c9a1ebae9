@@ -9,6 +9,7 @@ import (
 )
 
 func (s *Service) CreatePackage(ctx context.Context, input CreatePackageInput) (caption.CaptionPackage, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "create_package"
 	var replayed caption.CaptionPackage
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
@@ -40,6 +41,7 @@ func (s *Service) CreatePackage(ctx context.Context, input CreatePackageInput) (
 }
 
 func (s *Service) ImportRevision(ctx context.Context, input ImportRevisionInput) (caption.CaptionRevision, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "import_revision"
 	var replayed caption.CaptionRevision
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {

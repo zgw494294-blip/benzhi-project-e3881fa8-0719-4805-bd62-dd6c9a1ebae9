@@ -8,6 +8,7 @@ import (
 )
 
 func (s *Service) Review(ctx context.Context, input ReviewInput) (caption.ReviewDecision, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "review"
 	var replayed caption.ReviewDecision
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
@@ -56,6 +57,7 @@ func (s *Service) Review(ctx context.Context, input ReviewInput) (caption.Review
 }
 
 func (s *Service) Freeze(ctx context.Context, input FreezeInput) (caption.CaptionPackage, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "freeze"
 	var replayed caption.CaptionPackage
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
@@ -115,6 +117,7 @@ func (s *Service) Freeze(ctx context.Context, input FreezeInput) (caption.Captio
 }
 
 func (s *Service) IssueManifest(ctx context.Context, input IssueInput) (caption.ReleaseManifest, error) {
+	ctx = context.WithoutCancel(ctx)
 	const command = "issue_manifest"
 	var replayed caption.ReleaseManifest
 	if ok, err := s.replay(ctx, input.IdempotencyKey, command, &replayed); ok || err != nil {
