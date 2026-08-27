@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>字幕发布准入工作台</title>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">ACCESSIBLE MEDIA · RELEASE CONTROL</p>
+      <h1>字幕发布准入工作台</h1>
+    </div>
+    <div class="connection"><span class="pulse"></span><span>本地审校链路</span></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div>
+        <p class="kicker">交付控制面板</p>
+        <h2>从时轴检查到冻结签发，<br>让每个决定都有据可查。</h2>
+      </div>
+      <div class="hero-meta">
+        <span>规则集 caption-qc/1.0.0</span>
+        <span>审计链 audit-chain/1</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="rail">
+        <div class="section-title"><span>交付包</span><button id="refresh" class="text-button">刷新</button></div>
+        <div id="package-list" class="package-list" aria-live="polite"></div>
+        <button id="new-package" class="primary wide">＋ 建立交付包</button>
+      </aside>
+
+      <section class="workspace">
+        <div id="empty-state" class="empty-state">
+          <div class="empty-mark">CC</div>
+          <h3>选择或建立一个字幕交付包</h3>
+          <p>工作台会在这里呈现修订时间轴、质量问题、复核决定与发布清单。</p>
+        </div>
+        <div id="package-view" hidden>
+          <div class="package-heading">
+            <div><p id="package-id" class="mono muted"></p><h2 id="program-title"></h2></div>
+            <div><span id="status-badge" class="status"></span><span id="version" class="version"></span></div>
+          </div>
+          <nav class="tabs" aria-label="交付详情">
+            <button class="tab active" data-tab="timeline">时间轴</button>
+            <button class="tab" data-tab="findings">问题清单 <span id="finding-count" class="count">0</span></button>
+            <button class="tab" data-tab="review">独立复核</button>
+            <button class="tab" data-tab="audit">审计与清单</button>
+          </nav>
+          <div id="timeline" class="tab-panel active">
+            <div class="panel-tools"><div><h3>当前修订</h3><p id="revision-meta" class="muted"></p></div><div class="button-row"><button id="import-revision">导入修订</button><button id="run-checks" class="primary">运行检查</button></div></div>
+            <div id="cue-list" class="cue-list"></div>
+          </div>
+          <div id="findings" class="tab-panel">
+            <div class="panel-tools"><div><h3>质量问题</h3><p class="muted">按 cue 定位；可提交替代修订或有依据的例外。</p></div><button id="replacement">提交替代修订</button></div>
+            <div id="summary" class="summary-grid"></div>
+            <div id="finding-list" class="finding-list"></div>
+          </div>
+          <div id="review" class="tab-panel">
+            <div class="panel-tools"><div><h3>独立复核</h3><p class="muted">复核员必须不同于当前修订提交者。</p></div></div>
+            <form id="review-form" class="action-form">
+              <label>复核员<input name="reviewerId" required value="reviewer.li"></label>
+              <label>复核意见<textarea name="comment" rows="3">已核对时轴、文本和例外依据。</textarea></label>
+              <div id="exception-options"></div>
+              <div class="button-row"><button type="submit" name="outcome" value="returned">退回整改</button><button type="submit" name="outcome" value="approved" class="primary">整体通过</button></div>
+            </form>
+            <div id="review-decision"></div>
+          </div>
+          <div id="audit" class="tab-panel">
+            <div class="panel-tools"><div><h3>冻结、签发与验证</h3><p class="muted">冻结后历史内容不可修改；新修订会显式重开流程。</p></div><div class="button-row"><button id="freeze">冻结内容</button><button id="issue" class="primary">签发清单</button></div></div>
+            <div id="manifest-card"></div>
+            <h4>不可变审计轨迹</h4><ol id="history-list" class="history-list"></ol>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="modal">
+    <form method="dialog" class="dialog-shell"><button class="dialog-close" value="cancel" aria-label="关闭">×</button><div id="dialog-content"></div></form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>
