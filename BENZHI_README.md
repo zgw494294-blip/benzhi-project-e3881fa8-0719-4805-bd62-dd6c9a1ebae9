@@ -1,6 +1,6 @@
 # BENZHI_README
 
-基于 Go 实现的caption-release-gate Web 项目，一款后端服务，用于支持caption-release-gate的核心业务流程。
+基于 Go 实现的字幕交付发布准入 Web 项目，一款后端服务，用于管理字幕包建档、时轴质检、问题整改和发布冻结。
 
 ## 项目说明
 - 项目：benzhi-project-e3881fa8-0719-4805-bd62-dd6c9a1ebae9
